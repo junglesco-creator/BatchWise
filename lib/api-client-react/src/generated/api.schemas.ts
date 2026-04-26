@@ -8,3 +8,126 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface ApiError {
+  error: string;
+}
+
+export interface Feature {
+  title: string;
+  description: string;
+}
+
+export interface Page {
+  route: string;
+  name: string;
+  purpose: string;
+}
+
+export interface DataField {
+  name: string;
+  type: string;
+  description: string;
+}
+
+export interface DataModel {
+  name: string;
+  description: string;
+  fields: DataField[];
+}
+
+export interface UserStory {
+  role: string;
+  action: string;
+  benefit: string;
+}
+
+export interface TechItem {
+  name: string;
+  category: string;
+  reason: string;
+}
+
+export type FileNodeKind = (typeof FileNodeKind)[keyof typeof FileNodeKind];
+
+export const FileNodeKind = {
+  file: "file",
+  folder: "folder",
+} as const;
+
+export interface FileNode {
+  path: string;
+  kind: FileNodeKind;
+  purpose: string;
+}
+
+export interface Milestone {
+  title: string;
+  description: string;
+  order: number;
+}
+
+export type BlueprintDifficulty =
+  (typeof BlueprintDifficulty)[keyof typeof BlueprintDifficulty];
+
+export const BlueprintDifficulty = {
+  beginner: "beginner",
+  intermediate: "intermediate",
+  advanced: "advanced",
+} as const;
+
+export interface Blueprint {
+  id: number;
+  prompt: string;
+  name: string;
+  tagline: string;
+  description: string;
+  category: string;
+  targetAudience: string;
+  difficulty: BlueprintDifficulty;
+  estimatedHours: number;
+  accentColor: string;
+  emoji: string;
+  favorite: boolean;
+  features: Feature[];
+  pages: Page[];
+  dataModels: DataModel[];
+  userStories: UserStory[];
+  techStack: TechItem[];
+  fileStructure: FileNode[];
+  milestones: Milestone[];
+  createdAt: string;
+}
+
+export interface BlueprintStats {
+  totalBlueprints: number;
+  totalFavorites: number;
+  totalFeatures: number;
+  totalPages: number;
+  totalEstimatedHours: number;
+  averageHoursPerBlueprint: number;
+  uniqueTechnologies: number;
+  uniqueCategories: number;
+}
+
+export interface TechCount {
+  name: string;
+  category: string;
+  count: number;
+}
+
+export interface CategoryCount {
+  category: string;
+  count: number;
+}
+
+export interface InspirationPrompt {
+  title: string;
+  prompt: string;
+  emoji: string;
+}
+
+export type GenerateBlueprintBody = {
+  /** @minLength 3 */
+  prompt: string;
+};

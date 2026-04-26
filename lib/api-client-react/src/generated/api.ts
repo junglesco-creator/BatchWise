@@ -5,18 +5,30 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  ApiError,
+  Blueprint,
+  BlueprintStats,
+  CategoryCount,
+  GenerateBlueprintBody,
+  HealthStatus,
+  InspirationPrompt,
+  TechCount,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -92,6 +104,797 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List all blueprints
+ */
+export const getListBlueprintsUrl = () => {
+  return `/api/blueprints`;
+};
+
+export const listBlueprints = async (
+  options?: RequestInit,
+): Promise<Blueprint[]> => {
+  return customFetch<Blueprint[]>(getListBlueprintsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListBlueprintsQueryKey = () => {
+  return [`/api/blueprints`] as const;
+};
+
+export const getListBlueprintsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listBlueprints>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listBlueprints>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListBlueprintsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listBlueprints>>> = ({
+    signal,
+  }) => listBlueprints({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listBlueprints>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListBlueprintsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listBlueprints>>
+>;
+export type ListBlueprintsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all blueprints
+ */
+
+export function useListBlueprints<
+  TData = Awaited<ReturnType<typeof listBlueprints>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listBlueprints>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListBlueprintsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Generate a new app blueprint from a prompt
+ */
+export const getGenerateBlueprintUrl = () => {
+  return `/api/blueprints/generate`;
+};
+
+export const generateBlueprint = async (
+  generateBlueprintBody: GenerateBlueprintBody,
+  options?: RequestInit,
+): Promise<Blueprint> => {
+  return customFetch<Blueprint>(getGenerateBlueprintUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(generateBlueprintBody),
+  });
+};
+
+export const getGenerateBlueprintMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateBlueprint>>,
+    TError,
+    { data: BodyType<GenerateBlueprintBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateBlueprint>>,
+  TError,
+  { data: BodyType<GenerateBlueprintBody> },
+  TContext
+> => {
+  const mutationKey = ["generateBlueprint"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateBlueprint>>,
+    { data: BodyType<GenerateBlueprintBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return generateBlueprint(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateBlueprintMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateBlueprint>>
+>;
+export type GenerateBlueprintMutationBody = BodyType<GenerateBlueprintBody>;
+export type GenerateBlueprintMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Generate a new app blueprint from a prompt
+ */
+export const useGenerateBlueprint = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateBlueprint>>,
+    TError,
+    { data: BodyType<GenerateBlueprintBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateBlueprint>>,
+  TError,
+  { data: BodyType<GenerateBlueprintBody> },
+  TContext
+> => {
+  return useMutation(getGenerateBlueprintMutationOptions(options));
+};
+
+/**
+ * @summary Get a blueprint by id
+ */
+export const getGetBlueprintUrl = (id: number) => {
+  return `/api/blueprints/${id}`;
+};
+
+export const getBlueprint = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Blueprint> => {
+  return customFetch<Blueprint>(getGetBlueprintUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBlueprintQueryKey = (id: number) => {
+  return [`/api/blueprints/${id}`] as const;
+};
+
+export const getGetBlueprintQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBlueprint>>,
+  TError = ErrorType<ApiError>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBlueprint>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBlueprintQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBlueprint>>> = ({
+    signal,
+  }) => getBlueprint(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBlueprint>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBlueprintQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBlueprint>>
+>;
+export type GetBlueprintQueryError = ErrorType<ApiError>;
+
+/**
+ * @summary Get a blueprint by id
+ */
+
+export function useGetBlueprint<
+  TData = Awaited<ReturnType<typeof getBlueprint>>,
+  TError = ErrorType<ApiError>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBlueprint>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBlueprintQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Delete a blueprint
+ */
+export const getDeleteBlueprintUrl = (id: number) => {
+  return `/api/blueprints/${id}`;
+};
+
+export const deleteBlueprint = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteBlueprintUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteBlueprintMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteBlueprint>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteBlueprint>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteBlueprint"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteBlueprint>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteBlueprint(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteBlueprintMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteBlueprint>>
+>;
+
+export type DeleteBlueprintMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Delete a blueprint
+ */
+export const useDeleteBlueprint = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteBlueprint>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteBlueprint>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteBlueprintMutationOptions(options));
+};
+
+/**
+ * @summary Toggle the favorite status of a blueprint
+ */
+export const getToggleBlueprintFavoriteUrl = (id: number) => {
+  return `/api/blueprints/${id}/favorite`;
+};
+
+export const toggleBlueprintFavorite = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Blueprint> => {
+  return customFetch<Blueprint>(getToggleBlueprintFavoriteUrl(id), {
+    ...options,
+    method: "PATCH",
+  });
+};
+
+export const getToggleBlueprintFavoriteMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof toggleBlueprintFavorite>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof toggleBlueprintFavorite>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["toggleBlueprintFavorite"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof toggleBlueprintFavorite>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return toggleBlueprintFavorite(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ToggleBlueprintFavoriteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof toggleBlueprintFavorite>>
+>;
+
+export type ToggleBlueprintFavoriteMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Toggle the favorite status of a blueprint
+ */
+export const useToggleBlueprintFavorite = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof toggleBlueprintFavorite>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof toggleBlueprintFavorite>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getToggleBlueprintFavoriteMutationOptions(options));
+};
+
+/**
+ * @summary Get aggregate stats over all blueprints
+ */
+export const getGetBlueprintStatsUrl = () => {
+  return `/api/blueprints/stats/overview`;
+};
+
+export const getBlueprintStats = async (
+  options?: RequestInit,
+): Promise<BlueprintStats> => {
+  return customFetch<BlueprintStats>(getGetBlueprintStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBlueprintStatsQueryKey = () => {
+  return [`/api/blueprints/stats/overview`] as const;
+};
+
+export const getGetBlueprintStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBlueprintStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBlueprintStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBlueprintStatsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getBlueprintStats>>
+  > = ({ signal }) => getBlueprintStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBlueprintStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBlueprintStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBlueprintStats>>
+>;
+export type GetBlueprintStatsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get aggregate stats over all blueprints
+ */
+
+export function useGetBlueprintStats<
+  TData = Awaited<ReturnType<typeof getBlueprintStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBlueprintStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBlueprintStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get the most recent blueprints
+ */
+export const getGetRecentBlueprintsUrl = () => {
+  return `/api/blueprints/stats/recent`;
+};
+
+export const getRecentBlueprints = async (
+  options?: RequestInit,
+): Promise<Blueprint[]> => {
+  return customFetch<Blueprint[]>(getGetRecentBlueprintsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetRecentBlueprintsQueryKey = () => {
+  return [`/api/blueprints/stats/recent`] as const;
+};
+
+export const getGetRecentBlueprintsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRecentBlueprints>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getRecentBlueprints>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetRecentBlueprintsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getRecentBlueprints>>
+  > = ({ signal }) => getRecentBlueprints({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getRecentBlueprints>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetRecentBlueprintsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getRecentBlueprints>>
+>;
+export type GetRecentBlueprintsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get the most recent blueprints
+ */
+
+export function useGetRecentBlueprints<
+  TData = Awaited<ReturnType<typeof getRecentBlueprints>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getRecentBlueprints>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetRecentBlueprintsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get a leaderboard of the most-used technologies across blueprints
+ */
+export const getGetPopularTechUrl = () => {
+  return `/api/blueprints/stats/popular-tech`;
+};
+
+export const getPopularTech = async (
+  options?: RequestInit,
+): Promise<TechCount[]> => {
+  return customFetch<TechCount[]>(getGetPopularTechUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPopularTechQueryKey = () => {
+  return [`/api/blueprints/stats/popular-tech`] as const;
+};
+
+export const getGetPopularTechQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPopularTech>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPopularTech>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPopularTechQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPopularTech>>> = ({
+    signal,
+  }) => getPopularTech({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPopularTech>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPopularTechQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPopularTech>>
+>;
+export type GetPopularTechQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get a leaderboard of the most-used technologies across blueprints
+ */
+
+export function useGetPopularTech<
+  TData = Awaited<ReturnType<typeof getPopularTech>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPopularTech>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPopularTechQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get a breakdown of blueprints by category
+ */
+export const getGetCategoryBreakdownUrl = () => {
+  return `/api/blueprints/stats/categories`;
+};
+
+export const getCategoryBreakdown = async (
+  options?: RequestInit,
+): Promise<CategoryCount[]> => {
+  return customFetch<CategoryCount[]>(getGetCategoryBreakdownUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCategoryBreakdownQueryKey = () => {
+  return [`/api/blueprints/stats/categories`] as const;
+};
+
+export const getGetCategoryBreakdownQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCategoryBreakdown>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCategoryBreakdown>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCategoryBreakdownQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCategoryBreakdown>>
+  > = ({ signal }) => getCategoryBreakdown({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCategoryBreakdown>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCategoryBreakdownQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCategoryBreakdown>>
+>;
+export type GetCategoryBreakdownQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get a breakdown of blueprints by category
+ */
+
+export function useGetCategoryBreakdown<
+  TData = Awaited<ReturnType<typeof getCategoryBreakdown>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCategoryBreakdown>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCategoryBreakdownQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get a curated list of suggested prompts to inspire users
+ */
+export const getGetInspirationPromptsUrl = () => {
+  return `/api/blueprints/inspiration/prompts`;
+};
+
+export const getInspirationPrompts = async (
+  options?: RequestInit,
+): Promise<InspirationPrompt[]> => {
+  return customFetch<InspirationPrompt[]>(getGetInspirationPromptsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetInspirationPromptsQueryKey = () => {
+  return [`/api/blueprints/inspiration/prompts`] as const;
+};
+
+export const getGetInspirationPromptsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getInspirationPrompts>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getInspirationPrompts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetInspirationPromptsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getInspirationPrompts>>
+  > = ({ signal }) => getInspirationPrompts({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getInspirationPrompts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetInspirationPromptsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getInspirationPrompts>>
+>;
+export type GetInspirationPromptsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get a curated list of suggested prompts to inspire users
+ */
+
+export function useGetInspirationPrompts<
+  TData = Awaited<ReturnType<typeof getInspirationPrompts>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getInspirationPrompts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetInspirationPromptsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

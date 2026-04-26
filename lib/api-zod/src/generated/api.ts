@@ -14,3 +14,370 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary List all blueprints
+ */
+export const ListBlueprintsResponseItem = zod.object({
+  id: zod.number(),
+  prompt: zod.string(),
+  name: zod.string(),
+  tagline: zod.string(),
+  description: zod.string(),
+  category: zod.string(),
+  targetAudience: zod.string(),
+  difficulty: zod.enum(["beginner", "intermediate", "advanced"]),
+  estimatedHours: zod.number(),
+  accentColor: zod.string(),
+  emoji: zod.string(),
+  favorite: zod.boolean(),
+  features: zod.array(
+    zod.object({
+      title: zod.string(),
+      description: zod.string(),
+    }),
+  ),
+  pages: zod.array(
+    zod.object({
+      route: zod.string(),
+      name: zod.string(),
+      purpose: zod.string(),
+    }),
+  ),
+  dataModels: zod.array(
+    zod.object({
+      name: zod.string(),
+      description: zod.string(),
+      fields: zod.array(
+        zod.object({
+          name: zod.string(),
+          type: zod.string(),
+          description: zod.string(),
+        }),
+      ),
+    }),
+  ),
+  userStories: zod.array(
+    zod.object({
+      role: zod.string(),
+      action: zod.string(),
+      benefit: zod.string(),
+    }),
+  ),
+  techStack: zod.array(
+    zod.object({
+      name: zod.string(),
+      category: zod.string(),
+      reason: zod.string(),
+    }),
+  ),
+  fileStructure: zod.array(
+    zod.object({
+      path: zod.string(),
+      kind: zod.enum(["file", "folder"]),
+      purpose: zod.string(),
+    }),
+  ),
+  milestones: zod.array(
+    zod.object({
+      title: zod.string(),
+      description: zod.string(),
+      order: zod.number(),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+});
+export const ListBlueprintsResponse = zod.array(ListBlueprintsResponseItem);
+
+/**
+ * @summary Generate a new app blueprint from a prompt
+ */
+export const generateBlueprintBodyPromptMin = 3;
+
+export const GenerateBlueprintBody = zod.object({
+  prompt: zod.string().min(generateBlueprintBodyPromptMin),
+});
+
+/**
+ * @summary Get a blueprint by id
+ */
+export const GetBlueprintParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetBlueprintResponse = zod.object({
+  id: zod.number(),
+  prompt: zod.string(),
+  name: zod.string(),
+  tagline: zod.string(),
+  description: zod.string(),
+  category: zod.string(),
+  targetAudience: zod.string(),
+  difficulty: zod.enum(["beginner", "intermediate", "advanced"]),
+  estimatedHours: zod.number(),
+  accentColor: zod.string(),
+  emoji: zod.string(),
+  favorite: zod.boolean(),
+  features: zod.array(
+    zod.object({
+      title: zod.string(),
+      description: zod.string(),
+    }),
+  ),
+  pages: zod.array(
+    zod.object({
+      route: zod.string(),
+      name: zod.string(),
+      purpose: zod.string(),
+    }),
+  ),
+  dataModels: zod.array(
+    zod.object({
+      name: zod.string(),
+      description: zod.string(),
+      fields: zod.array(
+        zod.object({
+          name: zod.string(),
+          type: zod.string(),
+          description: zod.string(),
+        }),
+      ),
+    }),
+  ),
+  userStories: zod.array(
+    zod.object({
+      role: zod.string(),
+      action: zod.string(),
+      benefit: zod.string(),
+    }),
+  ),
+  techStack: zod.array(
+    zod.object({
+      name: zod.string(),
+      category: zod.string(),
+      reason: zod.string(),
+    }),
+  ),
+  fileStructure: zod.array(
+    zod.object({
+      path: zod.string(),
+      kind: zod.enum(["file", "folder"]),
+      purpose: zod.string(),
+    }),
+  ),
+  milestones: zod.array(
+    zod.object({
+      title: zod.string(),
+      description: zod.string(),
+      order: zod.number(),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a blueprint
+ */
+export const DeleteBlueprintParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Toggle the favorite status of a blueprint
+ */
+export const ToggleBlueprintFavoriteParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ToggleBlueprintFavoriteResponse = zod.object({
+  id: zod.number(),
+  prompt: zod.string(),
+  name: zod.string(),
+  tagline: zod.string(),
+  description: zod.string(),
+  category: zod.string(),
+  targetAudience: zod.string(),
+  difficulty: zod.enum(["beginner", "intermediate", "advanced"]),
+  estimatedHours: zod.number(),
+  accentColor: zod.string(),
+  emoji: zod.string(),
+  favorite: zod.boolean(),
+  features: zod.array(
+    zod.object({
+      title: zod.string(),
+      description: zod.string(),
+    }),
+  ),
+  pages: zod.array(
+    zod.object({
+      route: zod.string(),
+      name: zod.string(),
+      purpose: zod.string(),
+    }),
+  ),
+  dataModels: zod.array(
+    zod.object({
+      name: zod.string(),
+      description: zod.string(),
+      fields: zod.array(
+        zod.object({
+          name: zod.string(),
+          type: zod.string(),
+          description: zod.string(),
+        }),
+      ),
+    }),
+  ),
+  userStories: zod.array(
+    zod.object({
+      role: zod.string(),
+      action: zod.string(),
+      benefit: zod.string(),
+    }),
+  ),
+  techStack: zod.array(
+    zod.object({
+      name: zod.string(),
+      category: zod.string(),
+      reason: zod.string(),
+    }),
+  ),
+  fileStructure: zod.array(
+    zod.object({
+      path: zod.string(),
+      kind: zod.enum(["file", "folder"]),
+      purpose: zod.string(),
+    }),
+  ),
+  milestones: zod.array(
+    zod.object({
+      title: zod.string(),
+      description: zod.string(),
+      order: zod.number(),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get aggregate stats over all blueprints
+ */
+export const GetBlueprintStatsResponse = zod.object({
+  totalBlueprints: zod.number(),
+  totalFavorites: zod.number(),
+  totalFeatures: zod.number(),
+  totalPages: zod.number(),
+  totalEstimatedHours: zod.number(),
+  averageHoursPerBlueprint: zod.number(),
+  uniqueTechnologies: zod.number(),
+  uniqueCategories: zod.number(),
+});
+
+/**
+ * @summary Get the most recent blueprints
+ */
+export const GetRecentBlueprintsResponseItem = zod.object({
+  id: zod.number(),
+  prompt: zod.string(),
+  name: zod.string(),
+  tagline: zod.string(),
+  description: zod.string(),
+  category: zod.string(),
+  targetAudience: zod.string(),
+  difficulty: zod.enum(["beginner", "intermediate", "advanced"]),
+  estimatedHours: zod.number(),
+  accentColor: zod.string(),
+  emoji: zod.string(),
+  favorite: zod.boolean(),
+  features: zod.array(
+    zod.object({
+      title: zod.string(),
+      description: zod.string(),
+    }),
+  ),
+  pages: zod.array(
+    zod.object({
+      route: zod.string(),
+      name: zod.string(),
+      purpose: zod.string(),
+    }),
+  ),
+  dataModels: zod.array(
+    zod.object({
+      name: zod.string(),
+      description: zod.string(),
+      fields: zod.array(
+        zod.object({
+          name: zod.string(),
+          type: zod.string(),
+          description: zod.string(),
+        }),
+      ),
+    }),
+  ),
+  userStories: zod.array(
+    zod.object({
+      role: zod.string(),
+      action: zod.string(),
+      benefit: zod.string(),
+    }),
+  ),
+  techStack: zod.array(
+    zod.object({
+      name: zod.string(),
+      category: zod.string(),
+      reason: zod.string(),
+    }),
+  ),
+  fileStructure: zod.array(
+    zod.object({
+      path: zod.string(),
+      kind: zod.enum(["file", "folder"]),
+      purpose: zod.string(),
+    }),
+  ),
+  milestones: zod.array(
+    zod.object({
+      title: zod.string(),
+      description: zod.string(),
+      order: zod.number(),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+});
+export const GetRecentBlueprintsResponse = zod.array(
+  GetRecentBlueprintsResponseItem,
+);
+
+/**
+ * @summary Get a leaderboard of the most-used technologies across blueprints
+ */
+export const GetPopularTechResponseItem = zod.object({
+  name: zod.string(),
+  category: zod.string(),
+  count: zod.number(),
+});
+export const GetPopularTechResponse = zod.array(GetPopularTechResponseItem);
+
+/**
+ * @summary Get a breakdown of blueprints by category
+ */
+export const GetCategoryBreakdownResponseItem = zod.object({
+  category: zod.string(),
+  count: zod.number(),
+});
+export const GetCategoryBreakdownResponse = zod.array(
+  GetCategoryBreakdownResponseItem,
+);
+
+/**
+ * @summary Get a curated list of suggested prompts to inspire users
+ */
+export const GetInspirationPromptsResponseItem = zod.object({
+  title: zod.string(),
+  prompt: zod.string(),
+  emoji: zod.string(),
+});
+export const GetInspirationPromptsResponse = zod.array(
+  GetInspirationPromptsResponseItem,
+);

@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: blueprints
+    description: AI-generated app blueprints
 paths:
   /healthz:
     get:
@@ -24,6 +26,185 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /blueprints:
+    get:
+      operationId: listBlueprints
+      tags: [blueprints]
+      summary: List all blueprints
+      responses:
+        "200":
+          description: List of blueprints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Blueprint"
+  /blueprints/generate:
+    post:
+      operationId: generateBlueprint
+      tags: [blueprints]
+      summary: Generate a new app blueprint from a prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                  minLength: 3
+              required:
+                - prompt
+      responses:
+        "201":
+          description: Generated blueprint
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blueprint"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /blueprints/{id}:
+    get:
+      operationId: getBlueprint
+      tags: [blueprints]
+      summary: Get a blueprint by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Blueprint detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blueprint"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: deleteBlueprint
+      tags: [blueprints]
+      summary: Delete a blueprint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /blueprints/{id}/favorite:
+    patch:
+      operationId: toggleBlueprintFavorite
+      tags: [blueprints]
+      summary: Toggle the favorite status of a blueprint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated blueprint
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blueprint"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /blueprints/stats/overview:
+    get:
+      operationId: getBlueprintStats
+      tags: [blueprints]
+      summary: Get aggregate stats over all blueprints
+      responses:
+        "200":
+          description: Stats overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlueprintStats"
+  /blueprints/stats/recent:
+    get:
+      operationId: getRecentBlueprints
+      tags: [blueprints]
+      summary: Get the most recent blueprints
+      responses:
+        "200":
+          description: Recent blueprints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Blueprint"
+  /blueprints/stats/popular-tech:
+    get:
+      operationId: getPopularTech
+      tags: [blueprints]
+      summary: Get a leaderboard of the most-used technologies across blueprints
+      responses:
+        "200":
+          description: Popular technology counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TechCount"
+  /blueprints/stats/categories:
+    get:
+      operationId: getCategoryBreakdown
+      tags: [blueprints]
+      summary: Get a breakdown of blueprints by category
+      responses:
+        "200":
+          description: Category counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryCount"
+  /blueprints/inspiration/prompts:
+    get:
+      operationId: getInspirationPrompts
+      tags: [blueprints]
+      summary: Get a curated list of suggested prompts to inspire users
+      responses:
+        "200":
+          description: Suggested prompts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InspirationPrompt"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +214,258 @@ components:
           type: string
       required:
         - status
-
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    Feature:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - title
+        - description
+    Page:
+      type: object
+      properties:
+        route:
+          type: string
+        name:
+          type: string
+        purpose:
+          type: string
+      required:
+        - route
+        - name
+        - purpose
+    DataModel:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/DataField"
+      required:
+        - name
+        - description
+        - fields
+    DataField:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+      required:
+        - name
+        - type
+        - description
+    UserStory:
+      type: object
+      properties:
+        role:
+          type: string
+        action:
+          type: string
+        benefit:
+          type: string
+      required:
+        - role
+        - action
+        - benefit
+    TechItem:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        reason:
+          type: string
+      required:
+        - name
+        - category
+        - reason
+    FileNode:
+      type: object
+      properties:
+        path:
+          type: string
+        kind:
+          type: string
+          enum: [file, folder]
+        purpose:
+          type: string
+      required:
+        - path
+        - kind
+        - purpose
+    Milestone:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+      required:
+        - title
+        - description
+        - order
+    Blueprint:
+      type: object
+      properties:
+        id:
+          type: integer
+        prompt:
+          type: string
+        name:
+          type: string
+        tagline:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        targetAudience:
+          type: string
+        difficulty:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        estimatedHours:
+          type: integer
+        accentColor:
+          type: string
+        emoji:
+          type: string
+        favorite:
+          type: boolean
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/Feature"
+        pages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Page"
+        dataModels:
+          type: array
+          items:
+            $ref: "#/components/schemas/DataModel"
+        userStories:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserStory"
+        techStack:
+          type: array
+          items:
+            $ref: "#/components/schemas/TechItem"
+        fileStructure:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileNode"
+        milestones:
+          type: array
+          items:
+            $ref: "#/components/schemas/Milestone"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - prompt
+        - name
+        - tagline
+        - description
+        - category
+        - targetAudience
+        - difficulty
+        - estimatedHours
+        - accentColor
+        - emoji
+        - favorite
+        - features
+        - pages
+        - dataModels
+        - userStories
+        - techStack
+        - fileStructure
+        - milestones
+        - createdAt
+    BlueprintStats:
+      type: object
+      properties:
+        totalBlueprints:
+          type: integer
+        totalFavorites:
+          type: integer
+        totalFeatures:
+          type: integer
+        totalPages:
+          type: integer
+        totalEstimatedHours:
+          type: integer
+        averageHoursPerBlueprint:
+          type: number
+        uniqueTechnologies:
+          type: integer
+        uniqueCategories:
+          type: integer
+      required:
+        - totalBlueprints
+        - totalFavorites
+        - totalFeatures
+        - totalPages
+        - totalEstimatedHours
+        - averageHoursPerBlueprint
+        - uniqueTechnologies
+        - uniqueCategories
+    TechCount:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        count:
+          type: integer
+      required:
+        - name
+        - category
+        - count
+    CategoryCount:
+      type: object
+      properties:
+        category:
+          type: string
+        count:
+          type: integer
+      required:
+        - category
+        - count
+    InspirationPrompt:
+      type: object
+      properties:
+        title:
+          type: string
+        prompt:
+          type: string
+        emoji:
+          type: string
+      required:
+        - title
+        - prompt
+        - emoji
