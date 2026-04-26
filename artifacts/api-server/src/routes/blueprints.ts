@@ -3,6 +3,7 @@ import { db, blueprintsTable, type Blueprint, type TechItem } from "@workspace/d
 import { eq, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { generateBlueprintFromPrompt } from "../lib/blueprintGenerator";
+import { blueprintToMarkdown } from "../lib/blueprintMarkdown";
 
 const router: IRouter = Router();
 
@@ -114,6 +115,23 @@ router.get("/blueprints/stats/categories", async (_req, res) => {
 
 router.get("/blueprints/inspiration/prompts", (_req, res) => {
   res.json(INSPIRATION_PROMPTS);
+});
+
+router.get("/blueprints/:id/export.md", async (req, res) => {
+  const parsed = idParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    res.status(404).json({ error: "Blueprint not found" });
+    return;
+  }
+  const [row] = await db.select().from(blueprintsTable).where(eq(blueprintsTable.id, parsed.data.id));
+  if (!row) {
+    res.status(404).json({ error: "Blueprint not found" });
+    return;
+  }
+  const filename = `${row.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "blueprint"}.md`;
+  res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.send(blueprintToMarkdown(row));
 });
 
 router.get("/blueprints/:id", async (req, res) => {

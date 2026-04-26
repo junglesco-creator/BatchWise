@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Star, Trash2, Clock, Users, Zap, Layers, 
   Code2, Database, Layout, GitPullRequest, ArrowLeft,
-  ChevronRight, Folder, FileCode, CheckCircle2
+  ChevronRight, Folder, FileCode, CheckCircle2, Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -127,6 +127,19 @@ export default function BlueprintDetail() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-12 w-12 rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/50"
+                onClick={() => {
+                  const url = `${import.meta.env.BASE_URL}api/blueprints/${blueprint.id}/export.md`;
+                  window.location.href = url;
+                  toast({ title: "Exporting blueprint", description: "Your Markdown file is downloading." });
+                }}
+                title="Export as Markdown"
+              >
+                <Download className="w-5 h-5" />
+              </Button>
               <Button
                 variant={blueprint.favorite ? "default" : "outline"}
                 size="icon"
