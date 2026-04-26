@@ -136,3 +136,11 @@ export type GenerateBlueprintBody = {
   /** @minLength 3 */
   prompt: string;
 };
+
+export type RemixBlueprintBody = {
+  /**
+   * Optional twist to apply during the remix (e.g. "for kids", "use Python", "make it offline-first")
+   * @maxLength 500
+   */
+  instruction?: string;
+};

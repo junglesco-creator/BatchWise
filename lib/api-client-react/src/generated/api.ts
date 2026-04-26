@@ -25,6 +25,7 @@ import type {
   GenerateBlueprintBody,
   HealthStatus,
   InspirationPrompt,
+  RemixBlueprintBody,
   TechCount,
 } from "./api.schemas";
 
@@ -527,6 +528,93 @@ export const useToggleBlueprintFavorite = <
   TContext
 > => {
   return useMutation(getToggleBlueprintFavoriteMutationOptions(options));
+};
+
+/**
+ * @summary Generate a new blueprint as a variation of an existing one
+ */
+export const getRemixBlueprintUrl = (id: number) => {
+  return `/api/blueprints/${id}/remix`;
+};
+
+export const remixBlueprint = async (
+  id: number,
+  remixBlueprintBody?: RemixBlueprintBody,
+  options?: RequestInit,
+): Promise<Blueprint> => {
+  return customFetch<Blueprint>(getRemixBlueprintUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(remixBlueprintBody),
+  });
+};
+
+export const getRemixBlueprintMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof remixBlueprint>>,
+    TError,
+    { id: number; data: BodyType<RemixBlueprintBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof remixBlueprint>>,
+  TError,
+  { id: number; data: BodyType<RemixBlueprintBody> },
+  TContext
+> => {
+  const mutationKey = ["remixBlueprint"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof remixBlueprint>>,
+    { id: number; data: BodyType<RemixBlueprintBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return remixBlueprint(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RemixBlueprintMutationResult = NonNullable<
+  Awaited<ReturnType<typeof remixBlueprint>>
+>;
+export type RemixBlueprintMutationBody = BodyType<RemixBlueprintBody>;
+export type RemixBlueprintMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Generate a new blueprint as a variation of an existing one
+ */
+export const useRemixBlueprint = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof remixBlueprint>>,
+    TError,
+    { id: number; data: BodyType<RemixBlueprintBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof remixBlueprint>>,
+  TError,
+  { id: number; data: BodyType<RemixBlueprintBody> },
+  TContext
+> => {
+  return useMutation(getRemixBlueprintMutationOptions(options));
 };
 
 /**

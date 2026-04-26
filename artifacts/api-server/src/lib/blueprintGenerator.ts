@@ -60,6 +60,7 @@ type GeneratedBlueprint = Omit<InsertBlueprint, "prompt" | "favorite">;
 
 export async function generateBlueprintFromPrompt(
   prompt: string,
+  userMessage?: string,
 ): Promise<InsertBlueprint> {
   const completion = await openai.chat.completions.create({
     model: "gpt-5.4",
@@ -67,7 +68,7 @@ export async function generateBlueprintFromPrompt(
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: `App idea: ${prompt}` },
+      { role: "user", content: userMessage ?? `App idea: ${prompt}` },
     ],
   });
 

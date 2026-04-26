@@ -118,6 +118,59 @@ router.get("/blueprints/inspiration/prompts", (_req, res) => {
   res.json(INSPIRATION_PROMPTS);
 });
 
+const remixBodySchema = z.object({
+  instruction: z.string().max(500).optional(),
+});
+
+router.post("/blueprints/:id/remix", async (req, res) => {
+  const idParsed = idParamSchema.safeParse(req.params);
+  if (!idParsed.success) {
+    res.status(404).json({ error: "Source blueprint not found" });
+    return;
+  }
+  const bodyParsed = remixBodySchema.safeParse(req.body ?? {});
+  if (!bodyParsed.success) {
+    res.status(400).json({ error: "Invalid remix instruction" });
+    return;
+  }
+
+  const [source] = await db
+    .select()
+    .from(blueprintsTable)
+    .where(eq(blueprintsTable.id, idParsed.data.id));
+  if (!source) {
+    res.status(404).json({ error: "Source blueprint not found" });
+    return;
+  }
+
+  const instruction = bodyParsed.data.instruction?.trim();
+  const remixPrompt = instruction
+    ? `${source.prompt} (remix: ${instruction})`
+    : `${source.prompt} (a fresh remix)`;
+
+  const userMessage = [
+    `You previously generated a blueprint for this idea: "${source.prompt}"`,
+    `The existing blueprint is named "${source.name}" — tagline "${source.tagline}". It targets ${source.targetAudience}. Tech stack includes: ${source.techStack.map((t) => t.name).join(", ")}.`,
+    instruction
+      ? `Now generate a NEW, DIFFERENT blueprint for the same core idea but with this twist: "${instruction}".`
+      : `Now generate a NEW, DIFFERENT blueprint for the same core idea — a creative variation with a different angle, tech stack, or audience.`,
+    `Pick a different name, different accent color, different feature emphasis, and at least partially different tech stack from the original. The new blueprint should feel like a sibling, not a copy.`,
+  ].join("\n\n");
+
+  try {
+    const data = await generateBlueprintFromPrompt(remixPrompt, userMessage);
+    const [inserted] = await db.insert(blueprintsTable).values(data).returning();
+    if (!inserted) {
+      res.status(500).json({ error: "Failed to save remix" });
+      return;
+    }
+    res.status(201).json(serializeBlueprint(inserted));
+  } catch (err) {
+    req.log.error({ err }, "Failed to remix blueprint");
+    res.status(500).json({ error: err instanceof Error ? err.message : "Remix failed" });
+  }
+});
+
 router.post("/blueprints/:id/share", async (req, res) => {
   const parsed = idParamSchema.safeParse(req.params);
   if (!parsed.success) {

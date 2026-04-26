@@ -260,6 +260,25 @@ export const ToggleBlueprintFavoriteResponse = zod.object({
 });
 
 /**
+ * @summary Generate a new blueprint as a variation of an existing one
+ */
+export const RemixBlueprintParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const remixBlueprintBodyInstructionMax = 500;
+
+export const RemixBlueprintBody = zod.object({
+  instruction: zod
+    .string()
+    .max(remixBlueprintBodyInstructionMax)
+    .optional()
+    .describe(
+      'Optional twist to apply during the remix (e.g. \"for kids\", \"use Python\", \"make it offline-first\")',
+    ),
+});
+
+/**
  * @summary Create or refresh a public share link for a blueprint
  */
 export const CreateBlueprintShareParams = zod.object({

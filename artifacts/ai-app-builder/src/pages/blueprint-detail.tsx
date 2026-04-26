@@ -5,17 +5,20 @@ import {
   useToggleBlueprintFavorite,
   useCreateBlueprintShare,
   useRevokeBlueprintShare,
+  useRemixBlueprint,
   getGetBlueprintQueryKey,
   getListBlueprintsQueryKey,
   getGetBlueprintStatsQueryKey,
-  getGetRecentBlueprintsQueryKey
+  getGetRecentBlueprintsQueryKey,
+  getGetPopularTechQueryKey,
+  getGetCategoryBreakdownQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Star, Trash2, Clock, Users, Zap, Layers, 
   Code2, Database, Layout, GitPullRequest, ArrowLeft,
-  ChevronRight, Folder, FileCode, CheckCircle2, Download, Share2, Copy, Check
+  ChevronRight, Folder, FileCode, CheckCircle2, Download, Share2, Copy, Check, Shuffle, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,6 +32,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -76,6 +80,38 @@ export default function BlueprintDetail() {
   const [shareOpen, setShareOpen] = useState(false);
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [remixOpen, setRemixOpen] = useState(false);
+  const [remixInstruction, setRemixInstruction] = useState("");
+
+  const remixMutation = useRemixBlueprint({
+    mutation: {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries({ queryKey: getListBlueprintsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetBlueprintStatsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetRecentBlueprintsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetPopularTechQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetCategoryBreakdownQueryKey() });
+        setRemixOpen(false);
+        setRemixInstruction("");
+        toast({ title: "Remix ready", description: `Meet ${data.name}.` });
+        setLocation(`/blueprints/${data.id}`);
+      },
+      onError: (error) => {
+        toast({
+          title: "Remix failed",
+          description: error.data?.error || error.message || "Something went wrong.",
+          variant: "destructive",
+        });
+      }
+    }
+  });
+
+  const submitRemix = () => {
+    remixMutation.mutate({
+      id: blueprintId,
+      data: { instruction: remixInstruction.trim() || undefined },
+    });
+  };
 
   const createShareMutation = useCreateBlueprintShare({
     mutation: {
@@ -191,6 +227,15 @@ export default function BlueprintDetail() {
                 variant="outline"
                 size="icon"
                 className="h-12 w-12 rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/50"
+                onClick={() => setRemixOpen(true)}
+                title="Remix this blueprint"
+              >
+                <Shuffle className="w-5 h-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-12 w-12 rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/50"
                 onClick={openShareDialog}
                 title="Share publicly"
               >
@@ -245,6 +290,62 @@ export default function BlueprintDetail() {
               </AlertDialog>
             </div>
           </div>
+
+          <Dialog open={remixOpen} onOpenChange={(open) => { if (!remixMutation.isPending) setRemixOpen(open); }}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Shuffle className="w-5 h-5" style={{ color: blueprint.accentColor }} />
+                  Remix {blueprint.name}
+                </DialogTitle>
+                <DialogDescription>
+                  Generate a new variation of this idea. Add an optional twist — different audience, tech stack, scope, vibe — or leave blank for a fresh take.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-2 space-y-3">
+                <Textarea
+                  value={remixInstruction}
+                  onChange={(e) => setRemixInstruction(e.target.value)}
+                  placeholder="e.g. Make it for kids ages 7-12 with gamification, or use Python instead of TypeScript, or strip it down to a single-page MVP..."
+                  rows={4}
+                  maxLength={500}
+                  disabled={remixMutation.isPending}
+                  className="resize-none"
+                />
+                <div className="flex flex-wrap gap-2">
+                  {["For kids", "Mobile-first", "Offline-only", "Solo founder MVP", "Use Python + Django"].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => setRemixInstruction(suggestion)}
+                      disabled={remixMutation.isPending}
+                      className="text-xs font-mono px-3 py-1 rounded-full border border-border/50 bg-secondary/30 text-muted-foreground hover:text-foreground hover:border-foreground/50 transition-colors disabled:opacity-50"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setRemixOpen(false)} disabled={remixMutation.isPending}>
+                  Cancel
+                </Button>
+                <Button onClick={submitRemix} disabled={remixMutation.isPending} className="gap-2">
+                  {remixMutation.isPending ? (
+                    <>
+                      <Sparkles className="w-4 h-4 animate-pulse" />
+                      Remixing…
+                    </>
+                  ) : (
+                    <>
+                      <Shuffle className="w-4 h-4" />
+                      Remix
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <Dialog open={shareOpen} onOpenChange={setShareOpen}>
             <DialogContent>

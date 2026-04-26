@@ -137,6 +137,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /blueprints/{id}/remix:
+    post:
+      operationId: remixBlueprint
+      tags: [blueprints]
+      summary: Generate a new blueprint as a variation of an existing one
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                instruction:
+                  type: string
+                  description: Optional twist to apply during the remix (e.g. "for kids", "use Python", "make it offline-first")
+                  maxLength: 500
+      responses:
+        "201":
+          description: Newly generated remix blueprint
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blueprint"
+        "404":
+          description: Source blueprint not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /blueprints/{id}/share:
     post:
       operationId: createBlueprintShare
