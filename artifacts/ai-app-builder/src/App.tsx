@@ -7,24 +7,30 @@ import Home from "@/pages/home";
 import Blueprints from "@/pages/blueprints";
 import BlueprintDetail from "@/pages/blueprint-detail";
 import Dashboard from "@/pages/dashboard";
+import SharedBlueprint from "@/pages/shared-blueprint";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
 
 function Router() {
   return (
-    <div className="flex flex-col min-h-[100dvh]">
-      <NavBar />
-      <main className="flex-1">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/blueprints" component={Blueprints} />
-          <Route path="/blueprints/:id" component={BlueprintDetail} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route component={NotFound} />
-        </Switch>
-      </main>
-    </div>
+    <Switch>
+      <Route path="/share/:token" component={SharedBlueprint} />
+      <Route>
+        <div className="flex flex-col min-h-[100dvh]">
+          <NavBar />
+          <main className="flex-1">
+            <Switch>
+              <Route path="/" component={Home} />
+              <Route path="/blueprints" component={Blueprints} />
+              <Route path="/blueprints/:id" component={BlueprintDetail} />
+              <Route path="/dashboard" component={Dashboard} />
+              <Route component={NotFound} />
+            </Switch>
+          </main>
+        </div>
+      </Route>
+    </Switch>
   );
 }
 

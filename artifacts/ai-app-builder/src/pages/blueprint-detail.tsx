@@ -3,6 +3,8 @@ import {
   useGetBlueprint, 
   useDeleteBlueprint, 
   useToggleBlueprintFavorite,
+  useCreateBlueprintShare,
+  useRevokeBlueprintShare,
   getGetBlueprintQueryKey,
   getListBlueprintsQueryKey,
   getGetBlueprintStatsQueryKey,
@@ -13,11 +15,20 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Star, Trash2, Clock, Users, Zap, Layers, 
   Code2, Database, Layout, GitPullRequest, ArrowLeft,
-  ChevronRight, Folder, FileCode, CheckCircle2, Download
+  ChevronRight, Folder, FileCode, CheckCircle2, Download, Share2, Copy, Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,6 +72,55 @@ export default function BlueprintDetail() {
       }
     }
   });
+
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareToken, setShareToken] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const createShareMutation = useCreateBlueprintShare({
+    mutation: {
+      onSuccess: (data) => {
+        setShareToken(data.shareToken);
+      },
+      onError: () => {
+        toast({ title: "Failed to create share link", variant: "destructive" });
+      }
+    }
+  });
+
+  const revokeShareMutation = useRevokeBlueprintShare({
+    mutation: {
+      onSuccess: () => {
+        setShareToken(null);
+        setShareOpen(false);
+        toast({ title: "Share link revoked" });
+      }
+    }
+  });
+
+  const openShareDialog = () => {
+    setShareOpen(true);
+    setCopied(false);
+    if (!shareToken) {
+      createShareMutation.mutate({ id: blueprintId });
+    }
+  };
+
+  const shareUrl = shareToken
+    ? `${window.location.origin}${import.meta.env.BASE_URL}share/${shareToken}`
+    : "";
+
+  const copyShareUrl = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast({ title: "Link copied to clipboard" });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "Could not copy", description: "Select the link and copy manually.", variant: "destructive" });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -131,6 +191,15 @@ export default function BlueprintDetail() {
                 variant="outline"
                 size="icon"
                 className="h-12 w-12 rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/50"
+                onClick={openShareDialog}
+                title="Share publicly"
+              >
+                <Share2 className="w-5 h-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-12 w-12 rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/50"
                 onClick={() => {
                   const url = `${import.meta.env.BASE_URL}api/blueprints/${blueprint.id}/export.md`;
                   window.location.href = url;
@@ -176,6 +245,45 @@ export default function BlueprintDetail() {
               </AlertDialog>
             </div>
           </div>
+
+          <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Share this blueprint</DialogTitle>
+                <DialogDescription>
+                  Anyone with this link can view a read-only version of <span className="font-medium text-foreground">{blueprint.name}</span>. Revoke the link any time to stop access.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center gap-2 mt-2">
+                <Input
+                  readOnly
+                  value={createShareMutation.isPending && !shareToken ? "Generating link…" : shareUrl}
+                  className="font-mono text-xs"
+                  onFocus={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={copyShareUrl}
+                  disabled={!shareToken}
+                  title="Copy link"
+                >
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </Button>
+              </div>
+              <DialogFooter className="sm:justify-between gap-2">
+                <Button
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => revokeShareMutation.mutate({ id: blueprint.id })}
+                  disabled={!shareToken || revokeShareMutation.isPending}
+                >
+                  Revoke link
+                </Button>
+                <Button onClick={() => setShareOpen(false)}>Done</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Quick Stats Bar */}
           <div className="flex flex-wrap gap-4 mt-8 pt-8 border-t border-border/50">

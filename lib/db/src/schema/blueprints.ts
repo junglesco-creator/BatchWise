@@ -24,6 +24,7 @@ export const blueprintsTable = pgTable("blueprints", {
   accentColor: text("accent_color").notNull(),
   emoji: text("emoji").notNull(),
   favorite: boolean("favorite").notNull().default(false),
+  shareToken: text("share_token").unique(),
   features: jsonb("features").$type<Feature[]>().notNull(),
   pages: jsonb("pages").$type<Page[]>().notNull(),
   dataModels: jsonb("data_models").$type<DataModel[]>().notNull(),

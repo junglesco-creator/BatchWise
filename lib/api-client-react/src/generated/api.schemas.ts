@@ -99,6 +99,11 @@ export interface Blueprint {
   createdAt: string;
 }
 
+export interface BlueprintShare {
+  id: number;
+  shareToken: string;
+}
+
 export interface BlueprintStats {
   totalBlueprints: number;
   totalFavorites: number;

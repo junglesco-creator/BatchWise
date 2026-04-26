@@ -19,6 +19,7 @@ import type {
 import type {
   ApiError,
   Blueprint,
+  BlueprintShare,
   BlueprintStats,
   CategoryCount,
   GenerateBlueprintBody,
@@ -527,6 +528,262 @@ export const useToggleBlueprintFavorite = <
 > => {
   return useMutation(getToggleBlueprintFavoriteMutationOptions(options));
 };
+
+/**
+ * @summary Create or refresh a public share link for a blueprint
+ */
+export const getCreateBlueprintShareUrl = (id: number) => {
+  return `/api/blueprints/${id}/share`;
+};
+
+export const createBlueprintShare = async (
+  id: number,
+  options?: RequestInit,
+): Promise<BlueprintShare> => {
+  return customFetch<BlueprintShare>(getCreateBlueprintShareUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getCreateBlueprintShareMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBlueprintShare>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createBlueprintShare>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["createBlueprintShare"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createBlueprintShare>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return createBlueprintShare(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateBlueprintShareMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createBlueprintShare>>
+>;
+
+export type CreateBlueprintShareMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Create or refresh a public share link for a blueprint
+ */
+export const useCreateBlueprintShare = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBlueprintShare>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createBlueprintShare>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getCreateBlueprintShareMutationOptions(options));
+};
+
+/**
+ * @summary Revoke the public share link for a blueprint
+ */
+export const getRevokeBlueprintShareUrl = (id: number) => {
+  return `/api/blueprints/${id}/share`;
+};
+
+export const revokeBlueprintShare = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getRevokeBlueprintShareUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getRevokeBlueprintShareMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokeBlueprintShare>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof revokeBlueprintShare>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["revokeBlueprintShare"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof revokeBlueprintShare>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return revokeBlueprintShare(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RevokeBlueprintShareMutationResult = NonNullable<
+  Awaited<ReturnType<typeof revokeBlueprintShare>>
+>;
+
+export type RevokeBlueprintShareMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Revoke the public share link for a blueprint
+ */
+export const useRevokeBlueprintShare = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokeBlueprintShare>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof revokeBlueprintShare>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getRevokeBlueprintShareMutationOptions(options));
+};
+
+/**
+ * @summary Read a publicly shared blueprint by token
+ */
+export const getGetSharedBlueprintUrl = (token: string) => {
+  return `/api/share/${token}`;
+};
+
+export const getSharedBlueprint = async (
+  token: string,
+  options?: RequestInit,
+): Promise<Blueprint> => {
+  return customFetch<Blueprint>(getGetSharedBlueprintUrl(token), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSharedBlueprintQueryKey = (token: string) => {
+  return [`/api/share/${token}`] as const;
+};
+
+export const getGetSharedBlueprintQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSharedBlueprint>>,
+  TError = ErrorType<ApiError>,
+>(
+  token: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSharedBlueprint>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetSharedBlueprintQueryKey(token);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getSharedBlueprint>>
+  > = ({ signal }) => getSharedBlueprint(token, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!token,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSharedBlueprint>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSharedBlueprintQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSharedBlueprint>>
+>;
+export type GetSharedBlueprintQueryError = ErrorType<ApiError>;
+
+/**
+ * @summary Read a publicly shared blueprint by token
+ */
+
+export function useGetSharedBlueprint<
+  TData = Awaited<ReturnType<typeof getSharedBlueprint>>,
+  TError = ErrorType<ApiError>,
+>(
+  token: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSharedBlueprint>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSharedBlueprintQueryOptions(token, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get aggregate stats over all blueprints

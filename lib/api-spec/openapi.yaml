@@ -137,6 +137,73 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /blueprints/{id}/share:
+    post:
+      operationId: createBlueprintShare
+      tags: [blueprints]
+      summary: Create or refresh a public share link for a blueprint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Share token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlueprintShare"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: revokeBlueprintShare
+      tags: [blueprints]
+      summary: Revoke the public share link for a blueprint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Share revoked
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /share/{token}:
+    get:
+      operationId: getSharedBlueprint
+      tags: [blueprints]
+      summary: Read a publicly shared blueprint by token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Shared blueprint
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blueprint"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /blueprints/stats/overview:
     get:
       operationId: getBlueprintStats
@@ -405,6 +472,16 @@ components:
         - fileStructure
         - milestones
         - createdAt
+    BlueprintShare:
+      type: object
+      properties:
+        id:
+          type: integer
+        shareToken:
+          type: string
+      required:
+        - id
+        - shareToken
     BlueprintStats:
       type: object
       properties:

@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, blueprintsTable, type Blueprint, type TechItem } from "@workspace/db";
 import { eq, desc, sql } from "drizzle-orm";
 import { z } from "zod";
+import { randomBytes } from "node:crypto";
 import { generateBlueprintFromPrompt } from "../lib/blueprintGenerator";
 import { blueprintToMarkdown } from "../lib/blueprintMarkdown";
 
@@ -115,6 +116,65 @@ router.get("/blueprints/stats/categories", async (_req, res) => {
 
 router.get("/blueprints/inspiration/prompts", (_req, res) => {
   res.json(INSPIRATION_PROMPTS);
+});
+
+router.post("/blueprints/:id/share", async (req, res) => {
+  const parsed = idParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    res.status(404).json({ error: "Blueprint not found" });
+    return;
+  }
+  const [current] = await db
+    .select()
+    .from(blueprintsTable)
+    .where(eq(blueprintsTable.id, parsed.data.id));
+  if (!current) {
+    res.status(404).json({ error: "Blueprint not found" });
+    return;
+  }
+  const shareToken = current.shareToken ?? randomBytes(16).toString("hex");
+  if (!current.shareToken) {
+    await db
+      .update(blueprintsTable)
+      .set({ shareToken })
+      .where(eq(blueprintsTable.id, parsed.data.id));
+  }
+  res.json({ id: current.id, shareToken });
+});
+
+router.delete("/blueprints/:id/share", async (req, res) => {
+  const parsed = idParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    res.status(404).json({ error: "Blueprint not found" });
+    return;
+  }
+  const result = await db
+    .update(blueprintsTable)
+    .set({ shareToken: null })
+    .where(eq(blueprintsTable.id, parsed.data.id))
+    .returning();
+  if (result.length === 0) {
+    res.status(404).json({ error: "Blueprint not found" });
+    return;
+  }
+  res.status(204).end();
+});
+
+router.get("/share/:token", async (req, res) => {
+  const token = String(req.params.token ?? "").trim();
+  if (!token) {
+    res.status(404).json({ error: "Shared blueprint not found" });
+    return;
+  }
+  const [row] = await db
+    .select()
+    .from(blueprintsTable)
+    .where(eq(blueprintsTable.shareToken, token));
+  if (!row) {
+    res.status(404).json({ error: "Shared blueprint not found" });
+    return;
+  }
+  res.json(serializeBlueprint(row));
 });
 
 router.get("/blueprints/:id/export.md", async (req, res) => {

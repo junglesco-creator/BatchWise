@@ -260,6 +260,102 @@ export const ToggleBlueprintFavoriteResponse = zod.object({
 });
 
 /**
+ * @summary Create or refresh a public share link for a blueprint
+ */
+export const CreateBlueprintShareParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const CreateBlueprintShareResponse = zod.object({
+  id: zod.number(),
+  shareToken: zod.string(),
+});
+
+/**
+ * @summary Revoke the public share link for a blueprint
+ */
+export const RevokeBlueprintShareParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Read a publicly shared blueprint by token
+ */
+export const GetSharedBlueprintParams = zod.object({
+  token: zod.coerce.string(),
+});
+
+export const GetSharedBlueprintResponse = zod.object({
+  id: zod.number(),
+  prompt: zod.string(),
+  name: zod.string(),
+  tagline: zod.string(),
+  description: zod.string(),
+  category: zod.string(),
+  targetAudience: zod.string(),
+  difficulty: zod.enum(["beginner", "intermediate", "advanced"]),
+  estimatedHours: zod.number(),
+  accentColor: zod.string(),
+  emoji: zod.string(),
+  favorite: zod.boolean(),
+  features: zod.array(
+    zod.object({
+      title: zod.string(),
+      description: zod.string(),
+    }),
+  ),
+  pages: zod.array(
+    zod.object({
+      route: zod.string(),
+      name: zod.string(),
+      purpose: zod.string(),
+    }),
+  ),
+  dataModels: zod.array(
+    zod.object({
+      name: zod.string(),
+      description: zod.string(),
+      fields: zod.array(
+        zod.object({
+          name: zod.string(),
+          type: zod.string(),
+          description: zod.string(),
+        }),
+      ),
+    }),
+  ),
+  userStories: zod.array(
+    zod.object({
+      role: zod.string(),
+      action: zod.string(),
+      benefit: zod.string(),
+    }),
+  ),
+  techStack: zod.array(
+    zod.object({
+      name: zod.string(),
+      category: zod.string(),
+      reason: zod.string(),
+    }),
+  ),
+  fileStructure: zod.array(
+    zod.object({
+      path: zod.string(),
+      kind: zod.enum(["file", "folder"]),
+      purpose: zod.string(),
+    }),
+  ),
+  milestones: zod.array(
+    zod.object({
+      title: zod.string(),
+      description: zod.string(),
+      order: zod.number(),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+});
+
+/**
  * @summary Get aggregate stats over all blueprints
  */
 export const GetBlueprintStatsResponse = zod.object({
