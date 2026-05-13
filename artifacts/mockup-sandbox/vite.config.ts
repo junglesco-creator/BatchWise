@@ -11,7 +11,7 @@ const basePath = "/";
 export default defineConfig({
   base: basePath,
   plugins: [
-    mockupPreviewPlugin(),
+ // mockupPreviewPlugin(),
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
