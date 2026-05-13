@@ -11,7 +11,7 @@ const basePath = "/";
 export default defineConfig({
   base: basePath,
   plugins: [
- // mockupPreviewPlugin(),
+    // mockupPreviewPlugin(),
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
@@ -32,10 +32,9 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname),
-build: {
-  outDir: "dist",
-  emptyOutDir: true,
-}
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
   },
   server: {
     port,
